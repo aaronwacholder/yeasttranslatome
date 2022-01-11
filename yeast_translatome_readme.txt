@@ -41,4 +41,6 @@ Run the following processes in order to generate all required files to perform t
 -CollectiveDNDS
 -AntiDNDS
 
+The file 1011Matrix.gvcf is required for population analyses. Download from: http://1002genomes.u-strasbg.fr/files/ 
+
 The PRANK and MUSCLE programs are called for sequence alignments and must be available.
