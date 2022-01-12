@@ -1,0 +1,1 @@
+Directory for processed ribo-seq analysis output.

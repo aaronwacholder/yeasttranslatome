@@ -1,0 +1,1 @@
+Directory for TBLASTN resuts for ORFs and scrambled ORFS.

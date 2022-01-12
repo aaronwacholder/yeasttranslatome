@@ -1,0 +1,1 @@
+Place genomes in this directory for BLASTing ORFs against.

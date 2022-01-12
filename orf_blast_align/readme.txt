@@ -1,0 +1,1 @@
+Directory for BLAST-based ORF alignments.
