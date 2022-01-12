@@ -163,42 +163,15 @@ public:
 	int repeat_count = 0;
 	double best_homo_blast =1000;
 
-	/*int overlaps_gene_id = -1;
-	string is_dub = "X";
-	vector<int> exon_starts;
-	vector<int> exon_end;
-	int splice = 0;
-	int focal_end = -1;
-	int focal_contig = -1;
-	*/
 	string aaseq;
 	double coding_score = 0;
 	
-	/*
-	int mapped_peptides = 0;
-	int potential_starts = 0;
-	int earliest_cys_tyr = 0;
-	vector<double> ms_qval;*/
 	int has_atg = 0;
 	int absent_count = 0;
 	int no_atg = 0;
 	int has_stop = 0;
 	int inter_stop = 0;
 	int conserved_orf = 0;
-	/*vector<double> rpbs_bayes;
-	vector<double> price_pval;
-	vector<double> riborf_pval;
-	bool de_novo = false;
-	vector<int> outgroup;
-	vector<vector<int>> mapped_reads;
-	vector<int> preseq;
-	vector<int> base_nucs;
-	vector<int> sub_nucs;
-	int base_nucs_count = 0;
-	int sub_nucs_count = 0;
-	vector<int> start_conserved;
-	int up_gene = -1;
-	int down_gene = -1;*/
 	bool start_codon_overlap = false;
 	bool stop_codon_overlap = false;
 	
@@ -236,7 +209,6 @@ public:
 		syn_diffs_exp = vector<double>(SPECIES_COUNT);
 		nonsyn_diffs_exp = vector<double>(SPECIES_COUNT);
 		align_identity = vector<double>(SPECIES_COUNT);
-		//outgroup = vector<int>(2, -1);
 		alt_aaseq = vector<string>(SPECIES_COUNT);
 		alt_seqs = vector<vector<int>>(SPECIES_COUNT);
 		focal_align_aaseq = vector<string>(SPECIES_COUNT);
@@ -568,7 +540,6 @@ void reverse_complement(vector<int>& rc, const vector<int>& seq)
 		if (seq[i] > comp.size())
 		{
 			cout << "\nmismatch:" << seq.size() << " " << seq[i];
-			getchar();
 		}
 		else
 		{
@@ -776,11 +747,6 @@ void read_annotated_genes(vector<Orf>& genes, string filename, bool all_classes)
 
 					if (all_classes || orf_class != "")
 					{
-						/*if (id == "YNL205C")
-						{
-							cout << "\nAAA" << id<<" "<<orf_class;
-							getchar();
-						}*/
 						genes.push_back(Orf(1));
 						genes.back().orf_class = orf_class;
 						genes.back().annotation = id;
@@ -1344,7 +1310,6 @@ void check_orf_overlap(vector<Orf>& orfs, const vector<SGD>& sgds, vector<Overla
 						orfs[i].stop_codon_overlap = true;
 					}
 
-					//orfs[i].overlaps_gene = sgds[j].Name;
 
 					int rel_frame =  1+((3000000 + orfs[i].start_pos - sgds[j].start) % 3);
 					if (rel_frame == 1)
@@ -1360,16 +1325,7 @@ void check_orf_overlap(vector<Orf>& orfs, const vector<SGD>& sgds, vector<Overla
 						rel_frame *= -1;
 					}
 
-					/*int rel_frame = 1 + (abs(orfs[i].start_pos - sgds[j].start) % 3);
-					if (orfs[i].strand != sgds[j].strand)
-					{
-						rel_frame *= -1;
-					}*/
-					//orfs[i].overlap_gene_relative_frame = rel_frame;
 					int overlap_length = get_max_overlap(orfs[i].start_pos, orfs[i].end_pos, sgds[j].start, sgds[j].end);
-					//cout << "\nol:" << i << " " << overlap_length << " " << orfs[i].start_pos << " " << orfs[i].end_pos << " " << sgds[j].start << " " << sgds[j].end;
-					//getchar();
-					//orfs[i].overlap_gene_length = overlap_length;
 					if (rel_frame<0 && overlap_length > orfs[i].overlap_gene_length)
 					{
 						orfs[i].overlap_gene_relative_frame = rel_frame;
@@ -2654,7 +2610,7 @@ void place_mapped_ribseqs(vector<vector<int>>& mapped_ribseqs, const vector<Ribs
 	}
 	for (int i = 0; i < rseqs.size(); i++)
 	{
-		if (rseqs[i].mappings.size() > 0 /*&& rseqs[i].mappings.back().strand == 0*/)
+		if (rseqs[i].mappings.size() > 0)
 		{
 			mapped_ribseqs[rseqs[i].mappings.back().contig][rseqs[i].mappings.back().coord]++;
 		}
@@ -3455,8 +3411,6 @@ void identify_translated_orfs(string mod)
 {
 
 	vector<Experiment> experiments;
-	//read_riboseq_studies(experiments, "riboseq_experiments_dataset.txt");
-	//read_riboseq_studies(experiments, "/home/acwach/Riboseq/riboseq_experiments_dataset.txt");
 	read_riboseq_studies(experiments, "input_files/riboseq_experiments_dataset.txt");
 	//1.read ORFs
 	vector<Orf> orfs;
@@ -3616,35 +3570,6 @@ void identify_translated_orfs(string mod)
 			print_riboseqs_by_orf(scorer, use_orfs, "ypd_nochx_endpoint" + to_string(i));
 		}
 	}
-
-	/*else if (chx_studies)
-	{
-		map<string, int> chx_map;
-		for (int i = 0; i < experiments.size(); i++)
-		{
-			chx_map[experiments[i].srr] = experiments[i].chx;
-		}
-		vector<set<int>> included_columns(2);
-		for (int s = 0; s < studies.size(); s++)
-		{
-			cout << "\n" << s << " " << studies[s] << " " << chx_map[studies[s]] << " " << studies.size();
-			if (chx_map[studies[s]] > -1)
-			{
-				included_columns[chx_map[studies[s]]].insert(s);
-			}
-		}
-		for (int i = 0; i < 2; i++)
-		{
-			vector<Orf> use_orfs = orfs;
-			map_riboseq_to_orfs(use_orfs, ribopos_f, 0, 0, included_columns[i]);
-			map_riboseq_to_orfs(use_orfs, ribopos_r, 1, 0, included_columns[i]);
-			cout << "\nmap riboseq to orfs";
-			scramble_riboseq_reads(use_orfs);
-			vector<riboseq_scorer> scorer;
-			calc_riboseq_score(scorer, use_orfs);
-			print_riboseqs_by_orf(scorer, use_orfs, "chx" + to_string(i));
-		}
-	}*/
 	else if (mod=="chx_studies_sampled")//distinguish studies with and without CHX treatment, sampling equal read depth for each category 
 	{
 		cout << "\nriboseq analysis: chx_studies_sampled";
@@ -3661,8 +3586,6 @@ void identify_translated_orfs(string mod)
 				included_columns[chx_map[studies[s]]].insert(s);
 			}
 		}
-		//cout << "\nnum exp:" << included_columns[0].size() << " " << included_columns[1].size();
-		//getchar();
 		vector<vector<Ribopos>> combined_ribopos_f(2);
 		vector<vector<Ribopos>> combined_ribopos_r(2);
 		vector<int> read_counts_f(2);
@@ -4002,12 +3925,6 @@ void get_block_sequence(vector<MultiBlock>& blocks, const vector<Contig>& focal_
 {
 	for (int i = 0; i < blocks.size(); i++)
 	{
-		if(blocks[i].specific_orf=="0_22373_22429_0")
-		{
-			cout<<"\nblockmatch: "<<blocks[i].start_pos[1]<<" "<<blocks[i].end_pos[1]<<" "<<blocks[i].contig[1]<<" "<<blocks[i].rc;
-			getchar();
-		}
-
 		for (int k = blocks[i].start_pos[0]; k <= blocks[i].end_pos[0]; k++)
 		{
 			blocks[i].seq[0].push_back(focal_contigs[blocks[i].contig[0]].seq.at(k));
@@ -4118,14 +4035,14 @@ void blast_align(int species_id)
 	vector<string> spp = { "Scer","Spar","Smik","Sjur","Skud","Sarb","Suva","Seub" };
 	vector<string> genomes =
 	{
-		"S288C_reference_sequence_R64-2-1_20150113.fsa" ,
-		"Spar.ultrascaf",
-		"Smik.ultrascaf",
-		"GCA_900290405.1_SacJureiUoM1_genomic.fna",
-		"Skud.ultrascaf",
-		"GCF_000292725.1_SacArb1.0_genomic.fna",
-		"Sbay.ultrascaf",
-		"GCF_001298625.1_SEUB3.0_genomic.fna"
+		"input_files/S288C_reference_sequence_R64-2-1_20150113.fsa" ,
+		"input_files/Spar.ultrascaf",
+		"input_files/Smik.ultrascaf",
+		"input_files/GCA_900290405.1_SacJureiUoM1_genomic.fna",
+		"input_files/Skud.ultrascaf",
+		"input_files/GCF_000292725.1_SacArb1.0_genomic.fna",
+		"input_files/Sbay.ultrascaf",
+		"input_files/GCF_001298625.1_SEUB3.0_genomic.fna"
 	};
 
 	vector<Orf> orfs;
@@ -4138,18 +4055,7 @@ void blast_align(int species_id)
 	{
 		read_fasta(contigs[i], genomes[i]);
 	}
-	
-	///
-	///
-	//cout<<"\nseqX:\n"; 
-	//for(int q=0;q<40;q++)
-	//{
-	//	cout<<contigs[1][15].seq[590050+q];
-	//}
-	//getchar();
-	///
-	///
-	
+		
 	vector<vector<MultiBlock>> blocks(spp.size());
 	vector<vector<Blast_info>> blasts(spp.size());
 	int i = species_id;
@@ -4420,19 +4326,21 @@ void print_block_sequence_fasta(vector<MultiBlock>& blocks, string spp, string s
 }
 
 void synteny_align(int species_id, bool FORCE_MAKE_BLAST_DBS, bool FORCE_REDO_BLASTS)
-{
+{//align each ORF to its syntenic region in other saccharomyces species
 	int focal_species = 0;
 	vector<string> spp = { "Scer","Spar","Smik","Sjur","Skud","Sarb","Suva","Seub" };
-	vector<string> genomes = {
-		"S288C_reference_sequence_R64-2-1_20150113.fsa" ,
-		"Spar.ultrascaf",
-		"Smik.ultrascaf",
-		"GCA_900290405.1_SacJureiUoM1_genomic.fna",
-		"Skud.ultrascaf",
-		"GCF_000292725.1_SacArb1.0_genomic.fna",
-		"Sbay.ultrascaf",
-		"GCF_001298625.1_SEUB3.0_genomic.fna"
+	
+	vector<string> genomes = { //genomes in the same order as species list above. genomes can be downloaded at SGD and sensu stricto resources: http://sss.genetics.wisc.edu/cgi-bin/s3.cgi
+		"input_files/S288C_reference_sequence_R64-2-1_20150113.fsa" ,
+		"input_files/Spar.ultrascaf",
+		"input_files/Smik.ultrascaf",
+		"input_files/GCA_900290405.1_SacJureiUoM1_genomic.fna",
+		"input_files/Skud.ultrascaf",
+		"input_files/GCF_000292725.1_SacArb1.0_genomic.fna",
+		"input_files/Sbay.ultrascaf",
+		"input_files/GCF_001298625.1_SEUB3.0_genomic.fna"
 	};
+	//we first need to identify anchors for the synteny analysis, which we do by finding strong BLAST matches
 	vector<vector<Contig>> contigs(spp.size());
 	vector<vector<Orf>> orfs(spp.size());
 	for (int i = 0; i < spp.size(); i++)
@@ -4440,7 +4348,7 @@ void synteny_align(int species_id, bool FORCE_MAKE_BLAST_DBS, bool FORCE_REDO_BL
 		read_fasta(contigs[i], genomes[i]);
 		get_orfs(orfs[i], contigs[i], spp.size(), 200, true);
 		string filename = "orfs_aa_" + spp[i] + ".fas";
-		//2.a. setup blast databases if don't already exist
+		//setup blast databases if don't already exist
 		if (!file_exists(filename) || FORCE_MAKE_BLAST_DBS)
 		{
 			print_orfs_aa_fasta(filename, orfs[i]);
@@ -4488,7 +4396,7 @@ void synteny_align(int species_id, bool FORCE_MAKE_BLAST_DBS, bool FORCE_REDO_BL
 	
 	check_orf_overlap(orfs[0], genes);
 
-	//4. for each ORF in focal species, build syntenic block around it by finding upstream and downstream anchors in common among relatives
+	//for each ORF in focal species, build syntenic block around it by finding upstream and downstream anchors in common among relatives
 	vector<map<int, int>> id_map(spp.size());
 	get_homology(orfs, blast_map, focal_species);
 	for (int i = 0; i < orfs.size(); i++)
@@ -4502,13 +4410,13 @@ void synteny_align(int species_id, bool FORCE_MAKE_BLAST_DBS, bool FORCE_REDO_BL
 	get_orfs(scer_orfs, contigs[focal_species], spp.size(), 7, false);
 	remove_duplicate_orfs_by_contig(scer_orfs, contigs[focal_species]);
 	cout << "\n_orfs remaining after remove duplicates: " << scer_orfs.size();
-
+	
 	get_orf_blocks(blocks, orfs[focal_species], orfs[species_id], scer_orfs, blast_map[species_id], id_map[species_id], contigs[focal_species], contigs[species_id]);
 	cout << "\nblocks identified: " << blocks.size();
 	print_blocks(blocks, "blocks" + to_string(species_id) + "_" + to_string(focal_species));
 	get_block_sequence(blocks, contigs[focal_species], contigs[species_id]);
 	print_block_sequence_fasta(blocks, spp[species_id], "_" + to_string(focal_species));
-	align_block_sequence(blocks, to_string(species_id), { spp[focal_species],spp[species_id] }, 0, blocks.size());
+	align_block_sequence(blocks, to_string(species_id), { spp[focal_species],spp[species_id] }, 0, blocks.size());//align inferred syntenic blocks using MUSLCE 
 	print_blocks(blocks, "aligned_blocks" + to_string(species_id) + "_" + to_string(focal_species));
 }
 
@@ -4937,9 +4845,6 @@ bool single_compare_orfs(Orf& focal_orf, MultiBlock& block, int species, const v
 		vector<int> ref_pos;
 		get_ref_pos(ref_pos, block.align_seq[0]);
 		aquire_orfs(orfs, block, focal_orf.strand, ref_pos);
-		//cout << "\norfs aq: " << orfs.size()<<" "<<block.align_seq[0].size();
-		///getchar();
-		//filter_orfs_by_same_stop(orfs);
 		filter_orfs_by_length(orfs, 30);
 
 		vector<int> focal_align_seq;
@@ -5178,29 +5083,28 @@ void synteny_match()
 	string suffix = "";
 	vector<string> spp = { "Scer","Spar","Smik","Sjur","Skud","Sarb","Suva","Seub" };
 	vector<string> genomes = {
-		"S288C_reference_sequence_R64-2-1_20150113.fsa" ,
-		"Spar.ultrascaf",
-		"Smik.ultrascaf",
-		"GCA_900290405.1_SacJureiUoM1_genomic.fna",
-		"Skud.ultrascaf",
-		"GCF_000292725.1_SacArb1.0_genomic.fna",
-		"Sbay.ultrascaf",
-		"GCF_001298625.1_SEUB3.0_genomic.fna"
+		"input_files/S288C_reference_sequence_R64-2-1_20150113.fsa" ,
+		"input_files/Spar.ultrascaf",
+		"input_files/Smik.ultrascaf",
+		"input_files/GCA_900290405.1_SacJureiUoM1_genomic.fna",
+		"input_files/Skud.ultrascaf",
+		"input_files/GCF_000292725.1_SacArb1.0_genomic.fna",
+		"input_files/Sbay.ultrascaf",
+		"input_files/GCF_001298625.1_SEUB3.0_genomic.fna"
 	};
 
 	vector<Contig> contigs;
 	read_fasta(contigs, genomes[focal_species]);
-	//mt19937 rng;
+
+	//read syntenic blocks constructed by synteny_align()
 	vector<vector<MultiBlock>> blocks(spp.size());
 	for (int i = 0; i < spp.size(); i++)
 	{
 		read_multiblock(blocks[i], "aligned_blocks" + to_string(i) + "_" + to_string(focal_species) + suffix, 2);
 		cout << "\nblocks read: " << blocks[i].size();
-		//getchar();
 	}
 	vector<Orf> orfs;
 
-	//vector<vector<int>> starts = { {1,3,2} };
 	get_orfs(orfs, contigs, spp.size(), 7, false);
 	remove_duplicate_orfs_by_contig(orfs, contigs);
 
@@ -5219,6 +5123,7 @@ void synteny_match()
 	}
 	cout << "\nget block limits";
 
+	//create reverse complemented syntenic blocks to enable same algorithm in either direction
 	vector<vector<MultiBlock>> rc_blocks = blocks;
 	for (int i = 0; i < rc_blocks.size(); i++)
 	{
@@ -5238,15 +5143,13 @@ void synteny_match()
 			int orf_index = id_to_orf.at(blocks[i][j].specific_orf);
 			orfs[orf_index].frame_seq = vector<int>();
 			orfs[orf_index].align_index = vector<int>();
-			//cout << "\n" << i << " " << j << " " << blocks[i][j].is_good<<" "<<orf_index<<" "<<blocks[i][j].specific_orf;
-			//getchar();
 			if (blocks[i][j].is_good)
 			{
 				if (orfs[orf_index].strand == 0)
 				{
-					find_orf_in_block(blocks[i][j], orfs[orf_index], 0, i);
-					single_compare_orfs(orfs[orf_index], blocks[i][j], i, sub_rates);
-					get_flank_align(blocks[i][j], orfs[orf_index], 50, i);
+					find_orf_in_block(blocks[i][j], orfs[orf_index], 0, i);//find the S. cerevisiae ORF in the syntenic block
+					single_compare_orfs(orfs[orf_index], blocks[i][j], i, sub_rates);//compare all possible ORFs in the comparison species, calculating reading frame conservation vs. the S. cerevisiae ORF. the highest RFC is taken as the best homologous ORF
+					get_flank_align(blocks[i][j], orfs[orf_index], 50, i);//get flanking sequence of the S. cerevisiae ORF and homolog for later use
 				}
 				else
 				{
@@ -5260,9 +5163,6 @@ void synteny_match()
 	cout << "\nfound orf in block";
 	print_orf_bounds(orfs,"_synteny");
 	cout << "\ncheck good align";
-	//getchar();
-	//old_check_good_align_(orfs);
-	//check_good_align(orfs);
 	print_matched_orfs(orfs, "_" + spp[focal_species] + "_synteny_matched" + suffix);
 }
 
@@ -5271,7 +5171,7 @@ void blast_match()
 	vector<string> spp = { "Scer","Spar","Smik","Sjur","Skud","Sarb","Suva","Seub" };
 
 	vector<Contig> contigs;
-	read_fasta(contigs, "S288C_reference_sequence_R64-2-1_20150113.fsa");
+	read_fasta(contigs, "input_files/S288C_reference_sequence_R64-2-1_20150113.fsa");
 
 	mt19937 rng;
 	vector<vector<MultiBlock>> blocks(spp.size());
@@ -5316,11 +5216,6 @@ void blast_match()
 		for (int j = 0; j < blocks[i].size(); j++)
 		{
 			int orf_index = id_to_orf.at(blocks[i][j].specific_orf);
-			//if(blocks[i][j].specific_orf=="0_334_648_0")
-			//{
-			//	cout<<"\noi: "<<i<<" "<<j<<" "<<orf_index<<" "<<blocks[i][j].specific_orf<<" "<<blocks[i][j].blast_evalue<<" "<<best_orf_blast_eval[i][blocks[i][j].specific_orf]<<" "<<(blocks[i][j].blast_evalue > best_orf_blast_eval[i][blocks[i][j].specific_orf]);
-			//	getchar();
-			//}
 			if(blocks[i][j].blast_evalue > best_orf_blast_eval[i][blocks[i][j].specific_orf])
 			{
 				continue;
@@ -5359,12 +5254,6 @@ void blast_match()
 					orfs[orf_index] = dummy;
 				}
 			}
-			//if(blocks[i][j].specific_orf=="0_334_648_0")
-			//{
-			//	cout<<"\noi: "<<i<<" "<<j<<" "<<orf_index<<" "<<blocks[i][j].specific_orf<<" "<<blocks[i][j].blast_evalue<<" "<<best_orf_blast_eval[i][blocks[i][j].specific_orf]<<" "<<(blocks[i][j].blast_evalue > best_orf_blast_eval[i][blocks[i][j].specific_orf]);
-			//	cout<<"\nbi: "<<orfs[orf_index].alt_start_pos[i]<<" "<<orfs[orf_index].alt_end_pos[i];
-			//	getchar();
-			//}
 
 		}
 	}
@@ -5463,11 +5352,6 @@ void validate_orf_alignments(vector<Orf> &orfs)
 			int nongaps0 = count_nongaps(orfs[i].focal_align_seq[j]);
 			int nongaps1 = count_nongaps(orfs[i].align_seq[j]);
 			int align_length = orfs[i].focal_align_seq[j].size();
-			//if(orfs[i].use_blast_align[j])
-			//{
-			//	cout<<"\n"<<i<<" "<<j<<" "<<align_length<<" "<<orfs[i].use_blast_align[j]<<" "<<nongaps0<<" "<<nongaps1<<" "<<orfs[i].align_evalues[j];
-			//	getchar();
-			//}
 			if ( /*orfs[i].use_blast_align[j] &&*/ nongaps0 > 10 &&  nongaps1> 10 && nongaps0 > .4*align_length && nongaps1> .4*align_length && orfs[i].align_evalues[j]>.000001)
 			{
 				vector<int> seq0 = orfs[i].focal_flank_align[j];// focal_align_seq[j];
@@ -5515,8 +5399,7 @@ void resolve_intersecting_bounds(vector<Orf> &orfs)
 						{
 							int comp_orf_id=alt_genome_coverage[orfs[j].alt_contig[i]][k][w];
 							//if(orfs[comp_orf_id].start_pos-orfs[comp_orf_id].start_pos
-							cout<<"\nbound inter hit: "<<j<<" "<<comp_orf_id<<" "<<orfs[j].alt_start_pos[i]<<" "<<orfs[j].alt_end_pos[i];
-							getchar();
+							//cout<<"\nbound inter hit: "<<j<<" "<<comp_orf_id<<" "<<orfs[j].alt_start_pos[i]<<" "<<orfs[j].alt_end_pos[i];
 						}
 					}
 					alt_genome_coverage[orfs[j].alt_contig[i]][k].push_back(j);
@@ -5618,33 +5501,23 @@ void resolve_alignments()
 	vector<string> spp = { "Scer","Spar","Smik","Sjur","Skud","Sarb","Suva","Seub" };
 	vector<string> genomes =
 	{
-		"S288C_reference_sequence_R64-2-1_20150113.fsa" ,
-		"Spar.ultrascaf",
-		"Smik.ultrascaf",
-		"GCA_900290405.1_SacJureiUoM1_genomic.fna",
-		"Skud.ultrascaf",
-		"GCF_000292725.1_SacArb1.0_genomic.fna",
-		"Sbay.ultrascaf",
-		"GCF_001298625.1_SEUB3.0_genomic.fna"
+		"input_files/S288C_reference_sequence_R64-2-1_20150113.fsa" ,
+		"input_files/Spar.ultrascaf",
+		"input_files/Smik.ultrascaf",
+		"input_files/GCA_900290405.1_SacJureiUoM1_genomic.fna",
+		"input_files/Skud.ultrascaf",
+		"input_files/GCF_000292725.1_SacArb1.0_genomic.fna",
+		"input_files/Sbay.ultrascaf",
+		"input_files/GCF_001298625.1_SEUB3.0_genomic.fna"
 	};
 	vector<vector<Contig>> contigs(spp.size());
 	for (int i = 0; i < spp.size(); i++)
 	{
 		read_fasta(contigs[i], genomes[i]);
 	}
-	/////
-	/*cout<<"\nseqX:\n"; 
-	for(int q=0;q<40;q++)
-	{
-		cout<<contigs[1][15].seq[590050+q];
-	}
-	getchar();*/
-	////
-	vector<Orf> orfs;//orfs_scer_blast_matched
-	//read_orfs_long(orfs, "orfs_scer_blast_matched_validated", spp.size());
+	vector<Orf> orfs;
 	read_orfs_long(orfs, "orfs_scer_blast_matched", spp.size());
 
-	//read_orf_bounds(orfs,"orf_bounds_synteny",spp.size());
 	read_orf_bounds(orfs,"orf_bounds_blast",spp.size());
 	//resolve_intersecting_bounds(orfs);
 	print_assigned_homologous_sequence(orfs, contigs);
@@ -5852,10 +5725,10 @@ void print_sub_rates(const vector<vector<double>>& sub_rates, string filename)
 	}
 }
 
-void get_sub_matrix()
+void get_sub_matrix()//get nucleotide substitution matrix from population data
 {
 	vector<Contig> contigs;
-	read_fasta(contigs, "S288C_reference_sequence_R64-2-1_20150113.fsa");
+	read_fasta(contigs, "input_files/S288C_reference_sequence_R64-2-1_20150113.fsa");
 	cout << "\nread contigs: " << contigs.size();
 
 	vector<Vcf> vcfs;
@@ -5871,10 +5744,10 @@ void get_sub_matrix()
 	map_vcfs_to_genome(vcf_map, vcfs, contigs);
 
 	vector<Orf> genes;
-	read_annotated_genes(genes, "orf_coding.fasta", true);
+	read_annotated_genes(genes, "input_files/orf_coding.fasta", true);
 	cout << "\nannotated genes read: " << genes.size();
 
-	vector<vector<int>> genic_status;
+	vector<vector<int>> genic_status;//exclude annotated genes from use in deriving sub matrix 
 	get_genic_status(genic_status, contigs, genes);
 	cout << "\nget genic status";
 
@@ -5919,8 +5792,8 @@ void synteny_check()
 	read_matched_orfs(orfs, "orfs_Scer_synteny_matched", spp.size());
 	check_good_align(orfs);
 	print_matched_orfs(orfs,"_scer_synteny_matched_checked");
-	//print_orfs(orfs, "_scer_synteny_matched_checked");
 }
+
 void read_repeat_fasta(vector<Contig>& contigs, string filename)
 {
 	ifstream file(filename);
@@ -5953,19 +5826,19 @@ void sensu_stricto_blast()
 {
 	vector<string> spp = { "Scer","Spar","Smik","Sjur","Skud","Sarb","Suva","Seub" };
 	vector<string> genomes = {
-		"S288C_reference_sequence_R64-2-1_20150113.fsa" ,
-		"Spar.ultrascaf",
-		"Smik.ultrascaf",
-		"GCA_900290405.1_SacJureiUoM1_genomic.fna",
-		"Skud.ultrascaf",
-		"GCF_000292725.1_SacArb1.0_genomic.fna",
-		"Sbay.ultrascaf",
-		"GCF_001298625.1_SEUB3.0_genomic.fna"
+		"input_files/S288C_reference_sequence_R64-2-1_20150113.fsa" ,
+		"input_files/Spar.ultrascaf",
+		"input_files/Smik.ultrascaf",
+		"input_files/GCA_900290405.1_SacJureiUoM1_genomic.fna",
+		"input_files/Skud.ultrascaf",
+		"input_files/GCF_000292725.1_SacArb1.0_genomic.fna",
+		"input_files/Sbay.ultrascaf",
+		"input_files/GCF_001298625.1_SEUB3.0_genomic.fna"
 	};
 	vector<Contig> contigs;
 	vector<Orf> orfs;
-	read_fasta(contigs, "S288C_reference_sequence_R64-2-1_20150113.fsa");
-	read_repeat_fasta(contigs, "Saccharomyces_cerevisiae.R64-1-1.dna_sm.toplevel.fa");
+	read_fasta(contigs, "input_files/S288C_reference_sequence_R64-2-1_20150113.fsa");
+	read_repeat_fasta(contigs, "input_files/Saccharomyces_cerevisiae.R64-1-1.dna_sm.toplevel.fa");
 	get_orfs(orfs, contigs, 1, 7, false);
 	remove_duplicate_orfs_by_contig(orfs, contigs);
 	cout << "\norfs remaining after remove duplicates: " << orfs.size();
@@ -6026,18 +5899,11 @@ void mult_align_orthologs()
 void phylo_blast(string blast_type)
 {
 	vector<string> genome_filenames;
-	get_filenames(genome_filenames, "budding_yeast_genomes_filenames.txt",false);
+	get_filenames(genome_filenames, "input_files/budding_yeast_genomes_filenames.txt",false);
 	for (int i = 0; i < genome_filenames.size(); i++)
 	{
-		//if (genome_filenames[i][0] == '/')
-		//{
-		//	vector<string> split_filename;
-		//	split(genome_filenames[i], '/', split_filename);
-			string species_id = genome_filenames[i];//split_filename.back();
-			//species_id = species_id.substr(0, species_id.size() - 8);
-			//genome_filenames[i].erase(std::remove(genome_filenames[i].begin(), genome_filenames[i].end(), '\n'), genome_filenames[i].end());
-			//genome_filenames[i].erase(std::remove(genome_filenames[i].begin(), genome_filenames[i].end(), '\r'), genome_filenames[i].end());
-			if (blast_type=="-TBLASTN")
+			string species_id = genome_filenames[i];
+			if (blast_type=="-TBLASTN")//blast S. cer ORFs against budding yeast genomes using TBLASTN algorithm
 			{
 				string msg = "makeblastdb -in budding_yeast_genomes/" + species_id + ".fas -title " + species_id + " -dbtype nucl -out nuc_databases/" + species_id;
 				cout << "\n" << msg;
@@ -6047,14 +5913,13 @@ void phylo_blast(string blast_type)
 				s = system(msg.c_str());
 				//tblastn -db nuc_databases/nakaseomyces_nivariensis -query orfs_comp.fasta -evalue 1e-3 -out tblastn_align/scer_vs_nakaseomyces_nivariensis -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue"
 			}
-			else if (blast_type=="-TBLASTN_SCRAMBLED")
+			else if (blast_type=="-TBLASTN_SCRAMBLED") //blast S. cer ORFs and scrambled S. cer ORFs against budding yeast genomes using TBLASTN algorithm
 			{
-				//string msg = "tblastn -db nuc_databases/" + species_id + " -query orfs_comp_scrambled.fasta -evalue 1e-1 -out tblastn_align_scrambled/scer_vs_" + species_id + " -outfmt \"6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue\"";
 				string msg = "tblastn -db nuc_databases/" + species_id + " -query orfs_comp_scrambled_and_real.fasta -evalue 1e-1 -out tblastn_align_scrambled_and_real/scer_vs_" + species_id + " -outfmt \"6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue\"";
 				cout << "\n" << msg;
 				int s = system(msg.c_str());
 			}
-			else if (blast_type=="-ORF_BLAST")//yHMPu5000034622_pichia_occidentalis_16_orfs.fas
+			else if (blast_type=="-ORF_BLAST")//blast S. cer ORFs against budding yeast ORFs (single-exon ATG to stop ORFs taken from genome) using BLASTP algorithm
 			{
 				string msg = "makeblastdb -in ORFS_332/" + species_id + "_orfs.fas -title " + species_id + " -dbtype prot -out orf_databases/" + species_id;
 				cout << "\n" << msg;
@@ -6063,7 +5928,7 @@ void phylo_blast(string blast_type)
 				cout << "\n" << msg;
 				s = system(msg.c_str());
 			}
-			else if(blast_type=="-BLASTP")
+			else if(blast_type=="-BLASTP") // blast S. cer ORFs against annotated genes in budding yeast genomes using BLATP algorithm
 			{
 				string msg = "makeblastdb -in pep/" + genome_filenames[i] + ".max.pep -title " + species_id + " -dbtype prot -out databases/" + species_id;
 				cout << "\n" << msg;
@@ -6072,8 +5937,6 @@ void phylo_blast(string blast_type)
 				cout << "\n" << msg;
 				s = system(msg.c_str());
 			}
-		//}
-		//candida alibcans special:makeblastdb -in /home/acwach/YeastComp/Genome332/0_332yeast_genomes/Candida_albicans_SC5314_A22_current_default_protein.fasta -title candida_albicans -dbtype prot -out databases/candida_albicans
 	}
 }
 
@@ -6130,7 +5993,7 @@ void get_phylo_presence(vector<vector<double>> &phylo_present, vector<vector<Bla
 void phylo_analyze(string blast_type)
 {
 	vector<string> genome_filenames;
-	get_filenames(genome_filenames, "budding_yeast_genomes_filenames.txt",false);
+	get_filenames(genome_filenames, "input_files/budding_yeast_genomes_filenames.txt",false);
 
 	vector<Orf> orfs;
 	read_orfs(orfs, "orfs_comp", 1);
@@ -6164,8 +6027,8 @@ void phylo_analyze(string blast_type)
 		vector<Blast_info> blasts;
 		read_blast_results(blasts, blast_filename, false, false);
 		cout << "\nblasts read from file " << blast_filename << ":" << blasts.size();
-		get_phylo_presence(phylo_present, blast_match, orf_map, blasts, .001, i, false, false);
-		get_phylo_presence(phylo_present_scrambled, blast_match, orf_map, blasts, .001, i, false, true);
+		get_phylo_presence(phylo_present, blast_match, orf_map, blasts, .001, i, false, false);//for each comparison species, determine how strong the BLAST match is with each S. cer ORF
+		get_phylo_presence(phylo_present_scrambled, blast_match, orf_map, blasts, .001, i, false, true);//and scrambled ORFs (as negative controls)
 		string suffix = "";
 		if (blast_type=="-TBLASTN")
 		{
@@ -6177,42 +6040,18 @@ void phylo_analyze(string blast_type)
 			suffix = "_tblastn_scrambled";
 			print_phylo_presence(phylo_present_scrambled, species_ids, suffix);
 		}
-		//if (blast_type=="-TBLASTN_SCRAMBLED")
-		//{
-		//	print_phylo_presence(phylo_present, species_ids, suffix);
-		//}
-		/*if (blast_type=="-TBLASTN")
-		{
-			print_blast_match(blast_match, orf_list, species_ids, "_tblastn");
-		}
-		else
-		{
-			print_blast_match(blast_match, orf_list, species_ids, "");
-		}*/
-
-		//read gtf file to get coords of best matches
-		//read nucleotide fasta file to get actual sequences of matching ORF with flanks
-		//for each ORF that overlaps ancient gene in antisense direction, find all ORFs in ancient gene region
-		//calculate amino acid similarity with each ORF
-		//record stats of best match
 	}
 }
 
 void phylo_find_orfs() //find ORFs for 332 yeast species by scanning genomes
 {
 	vector<string> genome_filenames;
-	get_filenames(genome_filenames, "budding_yeast_genomes_filenames.txt",false);
+	get_filenames(genome_filenames, "input_files/budding_yeast_genomes_filenames.txt",false);
 	cout << "\ngenomes to read: " << genome_filenames.size();
 	for (int i = 0; i < genome_filenames.size(); i++)
 	{
-		//vector<string> split_filename;
-		//split(genome_filenames[i], '/', split_filename);
 		string species_id = genome_filenames[i];
-		//species_id = species_id.substr(0, species_id.size() - 8);
 		cout << "\n" << species_id;
-		//getchar();
-		//genome_filenames[i].erase(std::remove(genome_filenames[i].begin(), genome_filenames[i].end(), '\n'), genome_filenames[i].end());
-		//genome_filenames[i].erase(std::remove(genome_filenames[i].begin(), genome_filenames[i].end(), '\r'), genome_filenames[i].end());
 		vector<Contig> contigs;
 		vector<Orf> orfs;
 		read_fasta(contigs, "budding_yeast_genomes/"+genome_filenames[i]+".fas");
@@ -6224,8 +6063,6 @@ void phylo_find_orfs() //find ORFs for 332 yeast species by scanning genomes
 		remove_duplicate_orfs_by_contig(orfs, contigs);
 		cout << "\norfs remaining after remove duplicates: " << orfs.size();
 		print_orfs_aa_fasta("ORFS_332/"+species_id+"_orfs.fas", orfs);
-
-		//getchar();
 	}
 }
 void print_gene_similar(const vector<GeneSimilar> &gene_similar)
@@ -6298,7 +6135,7 @@ void self_blast()
 {
 	vector<Contig> contigs;
 	vector<Orf> orfs;
-	read_fasta(contigs, "S288C_reference_sequence_R64-2-1_20150113.fsa");
+	read_fasta(contigs, "input_files/S288C_reference_sequence_R64-2-1_20150113.fsa");
 	get_orfs(orfs, contigs, 1, 7, false);
 	remove_duplicate_orfs_by_contig(orfs, contigs);
 	cout << "\norfs remaining after remove duplicates: " << orfs.size();
@@ -6312,7 +6149,7 @@ void self_blast()
 	read_blast_results(blasts, "blasts_scer_orfs_vs_genomic_all", false, false);
 
 	vector<Orf> genes;
-	read_annotated_genes(genes, "orf_genomic_all.fasta", false);
+	read_annotated_genes(genes, "input_files/orf_genomic_all.fasta", false);
 
 	vector<GeneSimilar> gene_similar;
 	get_gene_similar(gene_similar,orfs, blasts, genes);
@@ -6379,16 +6216,6 @@ void get_hex_counts(const vector<Hex> &hexes, vector<int> &hex_counts, vector<do
 				if (is_good && !(exclude_triplets.count(hexes[hex].trip0) || exclude_triplets.count(hexes[hex].trip1)))
 				{
 					hex_counts[hex]++;
-					/*if (hexes[hex].diaa > diaa_counts.size())
-					{
-						cout << "\n" << hexes[hex].aa0 << " " << hexes[hex].aa1 << " " << hexes[hex].trip0 << " " << hexes[hex].trip1 << " ";
-						for (int q = 0; q < hexes[hex].seq.size(); q++)
-						{
-							cout << hexes[hex].seq[q];
-						}
-						getchar();
-					}
-					diaa_counts.at(hexes[hex].diaa)++;*/
 					total_count++;
 				}
 			}
@@ -6539,10 +6366,10 @@ void coding_scores()
 	mt19937 rng;
 
 	vector<Contig> contigs;
-	read_fasta(contigs, "S288C_reference_sequence_R64-2-1_20150113.fsa");
+	read_fasta(contigs, "input_files/S288C_reference_sequence_R64-2-1_20150113.fsa");
 
 	vector<Orf> genes;
-	read_annotated_genes(genes, "orf_coding.fasta", true);
+	read_annotated_genes(genes, "input_files/orf_coding.fasta", true);
 	cout<<"\ngenes read: "<<genes.size();
 
 	vector<Orf> orfs;
@@ -6690,7 +6517,7 @@ void print_align_positions(const vector<vector<int>> &align_positions)
 void strain_setup()
 {
 	vector<Contig> contigs;
-	read_fasta(contigs, "S288C_reference_sequence_R64-2-1_20150113.fsa");
+	read_fasta(contigs, "input_files/S288C_reference_sequence_R64-2-1_20150113.fsa");
 
 	vector<Orf> orfs;
 	read_orfs(orfs, "orfs_comp", 8);
@@ -6700,14 +6527,13 @@ void strain_setup()
 	vector<Vcf> vcfs;
 	vector<string> isolates;
 
-	read_vcfs(vcfs, isolates, "1011Matrix.gvcf");
+	read_vcfs(vcfs, isolates, "input_files/1011Matrix.gvcf");//VCF file taken from Peters et al. 2018
 	cout << "\nvcfs read: " << vcfs.size();
 	getchar();
 	
 	vector<vector<int>> vcf_map;
 	map_vcfs_to_genome(vcf_map, vcfs, contigs);
 
-	//get_pop_align_to_ref(orfs, vcfs, vcf_map, contigs);
 	vector<vector<int>> align_positions(orfs.size());
 	match_proto_vcf(align_positions, orfs, contigs, vcfs, vcf_map, isolates);
 	print_align_positions(align_positions);
@@ -6744,8 +6570,6 @@ void get_matched_alignment(vector<string> &match_align, vector<string> &mult_ali
 				bool all_good=true;
 				for(int j=0;j<match_frame.size();j++)
 				{
-					//cout<<"\nmaz: "<<mult_align[0].size()-2<<" "<<match_frame[j].size();
-					//getchar();
 					if(match_frame[j].at(i)==1 && match_frame[j].at(i+1)==1 && match_frame[j].at(i+2)==1 && mult_align[0][i]!='-' && mult_align[0][i+1]!='-' && mult_align[0][i+2]!='-')
 					{
 						
@@ -6775,14 +6599,6 @@ void get_matched_alignment(vector<string> &match_align, vector<string> &mult_ali
 			}
 		}
 	}
-	//cout<<"\nicm: "<<included_species.size()<<" "<<match_align.size();
-	//getchar();
-	//ofstream file("matched_alignment");
-	//file<<">spp0\n"<<match_align[0];
-	//for(int i=1;i<match_align.size();i++)
-	//{
-	//	file<<"\n>spp"<<included_species[i-1]<<"\n"<<match_align[i];
-	//}
 }
 
 bool seq_has_n(vector<int> &seq)
@@ -6827,7 +6643,6 @@ void make_clean_alignment_files()
 	vector<vector<string>> mult_align;
 	read_mult_align(mult_align, "orfs_mult_align");
 	cout<<"\nmult align read: "<<mult_align.size();
-	//getchar();
 	for(int i=0;i<orfs.size();i++)
 	{
 		vector<int> included_species;
@@ -6837,12 +6652,6 @@ void make_clean_alignment_files()
 			{
 				included_species.push_back(j);
 			}
-			/*if(orfs[i].orf_id=="4_565602_565799_0")
-			{
-				cout<<"\norf: "<<i<<" "<<orfs[i].align_evalues[j]<<" "<<orfs[i].use_blast_align[j]<<" "<<orfs[i].homology_validated[j]<<" "<<orfs[i].match_frame[j].size()<<" "<<included_species.size()<<" "<<seq_has_n(orfs[i].align_seq[j]);
-				getchar();
-			}*/
-
 		}
 		if(included_species.size()==0)
 		{
@@ -6850,34 +6659,18 @@ void make_clean_alignment_files()
 		}
 		cout<<"\nincluded species: "<<included_species.size()<<" "<<i<<" "<<orfs[i].orf_id;
 		
-		/*if(orfs[i].orf_id=="4_565602_565799_0")
-		{
-			cout<<"\norf: "<<i;//<<" "<<spp_included;
-			getchar();
-		}*/
-
-
-		//getchar();
 		vector<vector<int>> match_frame(included_species.size());
 		for(int j=0;j<included_species.size();j++)
 		{
 			int spp=included_species[j];
 			vector<int> match_frame_by_nuc;
-			//cout<<"\nmfbn: "<<spp<<" "<<match_frame_by_nuc.size()<<" "<<orfs[i].match_frame[spp].size()<<" "<<orfs[i].align_seq[spp].size();
-			//cout<<"\nB "<<orfs[i].match_frame[spp].size()<<" "<<spp<<"\n";
-			//getchar();
 			for(int k=0;k<orfs[i].match_frame[spp].size();k++)
 			{
-				//cout<<orfs[i].align_seq[spp][k];
 				if(orfs[i].align_seq[spp][k]<4)
 				{
 					match_frame_by_nuc.push_back(orfs[i].match_frame[spp][k]);
 				}
 			}
-			//cout<<"\nmfbn: "<<spp<<" "<<match_frame_by_nuc.size()<<" "<<orfs[i].match_frame[spp].size();
-			//getchar();
-			//cout<<"\nC "<<match_frame_by_nuc.size();
-			//getchar();
 			int nuc_pos=0;
 			for(int k=0;k<mult_align[i][spp].size();k++)
 			{
@@ -6893,8 +6686,6 @@ void make_clean_alignment_files()
 			}
 		}
 		vector<string> matched_alignment;
-		//cout<<"A";
-		//getchar();
 		get_matched_alignment(matched_alignment, mult_align[i],included_species,match_frame);
 		vector<string> matched_alignment_allspp(spp.size());
 		matched_alignment_allspp[0]=matched_alignment[0];
@@ -6907,12 +6698,7 @@ void make_clean_alignment_files()
 		{
 			file<<" "<<matched_alignment_allspp[s];
 		}
-		//cout<<"\nprint matched alignment for ORF "<<i<<" "<<orfs[i].orf_id;
-		//getchar();
 	}
-	
-
-
 	// do mult alignment of all orthologous regions
 	// id codons with shared reading frame for all orthologs
 	// make alignment of those codons
@@ -7159,11 +6945,6 @@ void individual_dnds()
 	vector<vector<double>> sub_rates;
 	read_sub_rates(sub_rates, "sub_rates_nongenic");
 
-	//vector<string> prank_alignments;
-	//read_prank_alignments(prank_alignments,"output.anc.fas");
-	//cout<<"\n"<<prank_alignments.size();
-	//getchar();
-	//get_prank_subs(subs,bases,prank_alignments);
 	vector<DNDS_reporter> dnds_reporter(clean_alignments.size());
 	for(int i=0;i<clean_alignments.size();i++)
 	{
@@ -7178,11 +6959,6 @@ void individual_dnds()
 			}
 		}
 		file.close();
-		/*if(orf_ids[i]=="4_565602_565799_0")
-		{
-			cout<<"\norf: "<<i<<" "<<spp_included;
-			getchar();
-		}*/
 		vector<int> branch_ancestors;
 		vector<int> branch_descendants;
 		if(spp_included==8) //has homologs in all species
@@ -7236,12 +7012,6 @@ void individual_dnds()
 
 			cmd = "prank -d=clean_orf.fasta -t=joined_tree.nwk -showanc -showevents -once -prunetree -keep";
 			s = system(cmd.c_str());
-			
-			//if(spp_included==7)
-			//{
-			//	cout<<"got8";
-			//	getchar();
-			//}
 
 			vector<string> prank_alignments;
 			if(file_exists("output.anc.fas"))
@@ -7252,48 +7022,19 @@ void individual_dnds()
 			}			
 		}
 	}
-	//cout<<"A";
-	//getchar();
 	vector<DNDS_reporter> dnds_reporter_by_orf(orfs.size());
 	for(int i=0;i<dnds_reporter_by_orf.size();i++)
 	{
 		dnds_reporter_by_orf[i].orf_id = orfs[i].orf_id;
 	}
-	//cout<<"B: "<<orf_ids.size()<<" "<<dnds_reporter.size()<<" "<<dnds_reporter_by_orf.size();
-	//getchar();
 
 	for(int i=0;i<dnds_reporter.size();i++)
 	{
-		/*if(!orf_id_map.count(orf_ids[i]))
-		{
-			cout<<"\nxyz: "<<i<<" "<<orf_ids[i];
-			getchar();
-		}*/
 		dnds_reporter_by_orf[orf_id_map.at(orf_ids[i])]=dnds_reporter[i];
 	}
-	//cout<<"C";
-	//getchar();
 
 	print_dnds(dnds_reporter_by_orf,"tree_dnds");
 
-	//print_dnds(dnds_reporter,"tree_dnds");
-	/*vector<vector<vector<double>>> sub_rates(14, vector<vector<double>>(4,vector<double>(4)));
-	for(int i=0;i<sub_rates.size();i++)
-	{
-		for(int j=0;j<sub_rates[i].size();j++)
-		{
-			for(int k=0;k<sub_rates[i][j].size();k++)
-			{
-				sub_rates[i][j][k]=(double)subs[i][j][k]/(double)bases[i][j];
-			}
-		}
-	}
-	
-	cout<<"\nfull set: "<<full_set;
-	print_sub_rates(sub_rates,"branch_sub_rates");*/
-	//make_clean_alignment_files();	
-	//cmd = "/home/acwach/YeastComp/prank/bin/prank -o=blocks/output_ancestors" + suffix + to_string(i) + " -d=blocks/w" + suffix + to_string(i) + ".fasta -t=blocks/wm" + suffix + to_string(i) + ".out_phyml_tree.txt -showanc -showevents -once";
-	//s = system(cmd.c_str());
 }
 
 void read_align_positions(vector<vector<int>> &align_positions, string filename)
@@ -7315,7 +7056,7 @@ void read_align_positions(vector<vector<int>> &align_positions, string filename)
 
 void read_pop_align(vector<vector<vector<int>>> &pop_align, int suffix)
 {
-	ifstream file("ORF_COMP/pop_align" + to_string(suffix));
+	ifstream file("pop_align" + to_string(suffix));
 	string line;
 	getline(file, line);
 	int i = 0;
@@ -7368,8 +7109,6 @@ void get_variant_freqs(vector<vector<int>> &variant_freqs, const vector<vector<v
 			if (matched_sequences[i][j].size() > 0)
 			{
 				variant_freqs = vector<vector<int>>(matched_sequences[i][j].size(), vector<int>(5));
-				//cout << "vfs: " << variant_freqs.size();
-				//getchar();
 				break;
 			}
 		}
@@ -7686,7 +7425,7 @@ void strain_analyze()
 	read_sub_rates(sub_rates, "sub_rates_nongenic");
 
 	vector<Contig> contigs;
-	read_fasta(contigs, "S288C_reference_sequence_R64-2-1_20150113.fsa");
+	read_fasta(contigs, "input_files/S288C_reference_sequence_R64-2-1_20150113.fsa");
 
 	vector<Orf> orfs;
 	read_orfs(orfs, "orfs_comp", 1);
@@ -7712,7 +7451,6 @@ void strain_analyze()
 		get_variant_freqs(variant_freqs, matched_sequences);
 		vector<int> consensus;
 		get_consensus(consensus, variant_freqs);
-		//get_codon_trans(codon_trans[i], matched_sequences,consensus );
 		get_syn_nonsyn_vars(orfs[i], variant_freqs, sub_rates);
 		for (int k = 0; k < 3; k++)
 		{
@@ -7729,23 +7467,9 @@ void strain_analyze()
 	}	
 }
 
-/*bool check_good_dnds(const Orf& orf)
-{
-	if (orf.match_frame[1].size() == 0)
-	{
-		return false;
-	}
-	else if (orf.match_frame[1].size() != orf.focal_align_seq[1].size())
-	{
-		cout<<"ERROR: "<<orf.orf_id<<" "<<orf.match_frame[1].size()<<" "<<orf.focal_align_seq[1].size();
-		getchar();
-		return false;
-	}
-	return true;
-}*/
 
 
-void do_dnds(/*vector<DNDS_reporter>& dnds, */vector<DNDS_reporter2>& dnds2, const vector<Orf>& orfs)
+void do_dnds(vector<DNDS_reporter2>& dnds2, const vector<Orf>& orfs)
 {
 	map<int, string> rev_nuc_map = { { 0,"A" },{ 1,"C" },{ 2,"G" },{ 3,"T" } };
 	map<int, char> aa_map = { { 0,'K' },{ 1,'N' },{ 2,'K' },{ 3,'N' },{ 4,'T' },{ 5,'T' },{ 6,'T' },{ 7,'T' },{ 8,'R' },{ 9,'S' },{ 10,'R' },{ 11,'S' },{ 12,'I' },{ 13,'I' },{ 14,'M' },{ 15,'I' },{ 16,'Q' },{ 17,'H' },{ 18,'Q' },{ 19,'H' },{ 20,'P' },{ 21,'P' },{ 22,'P' },{ 23,'P' },{ 24,'R' },{ 25,'R' },{ 26,'R' },{ 27,'R' },{ 28,'L' },{ 29,'L' },{ 30,'L' },{ 31,'L' },{ 32,'E' },{ 33,'D' },{ 34,'E' },{ 35,'D' },{ 36,'A' },{ 37,'A' },{ 38,'A' },{ 39,'A' },{ 40,'G' },{ 41,'G' },{ 42,'G' },{ 43,'G' },{ 44,'V' },{ 45,'V' },{ 46,'V' },{ 47,'V' },{ 48,'X' },{ 49,'Y' },{ 50,'X' },{ 51,'Y' },{ 52,'S' },{ 53,'S' },{ 54,'S' },{ 55,'S' },{ 56,'X' },{ 57,'C' },{ 58,'W' },{ 59,'C' },{ 60,'L' },{ 61,'F' },{ 62,'L' },{ 63,'F' } };
@@ -7828,23 +7552,17 @@ void do_dnds(/*vector<DNDS_reporter>& dnds, */vector<DNDS_reporter2>& dnds2, con
 						dnds2.back().orf_id = orfs[i].orf_id;
 						if (pos_aa == aa0)
 						{
-							//dnds[i].syn_base[cod0[h] * 4 + k]++;
 							dnds2.back().syn = 1;
 							if (cod1[h] == k)
 							{
-								//dnds[i].syn_obs++;
-								//dnds[i].syn_subs[cod0[h] * 4 + k]++;
 								dnds2.back().actual = 1;
 							}
 						}
 						else
 						{
 							dnds2.back().syn = 0;
-							//dnds[i].nonsyn_base[cod0[h] * 4 + k]++;
 							if (cod1[h] == k)
 							{
-								//dnds[i].nonsyn_obs++;
-								//dnds[i].nonsyn_subs[cod0[h] * 4 + k]++;
 								dnds2.back().actual = 1;
 							}
 						}
@@ -7856,14 +7574,13 @@ void do_dnds(/*vector<DNDS_reporter>& dnds, */vector<DNDS_reporter2>& dnds2, con
 	}
 }
 
-void do_anti_dnds(/*vector<DNDS_reporter>& dnds, */vector<DNDS_reporter2>& dnds2, const vector<Orf>& orfs, int rel_frame, bool anti_synonymous)
+void do_anti_dnds(vector<DNDS_reporter2>& dnds2, const vector<Orf>& orfs, int rel_frame, bool anti_synonymous)
 {
 	map<int, string> rev_nuc_map = { { 0,"A" },{ 1,"C" },{ 2,"G" },{ 3,"T" } };
 	map<int, char> aa_map = { { 0,'K' },{ 1,'N' },{ 2,'K' },{ 3,'N' },{ 4,'T' },{ 5,'T' },{ 6,'T' },{ 7,'T' },{ 8,'R' },{ 9,'S' },{ 10,'R' },{ 11,'S' },{ 12,'I' },{ 13,'I' },{ 14,'M' },{ 15,'I' },{ 16,'Q' },{ 17,'H' },{ 18,'Q' },{ 19,'H' },{ 20,'P' },{ 21,'P' },{ 22,'P' },{ 23,'P' },{ 24,'R' },{ 25,'R' },{ 26,'R' },{ 27,'R' },{ 28,'L' },{ 29,'L' },{ 30,'L' },{ 31,'L' },{ 32,'E' },{ 33,'D' },{ 34,'E' },{ 35,'D' },{ 36,'A' },{ 37,'A' },{ 38,'A' },{ 39,'A' },{ 40,'G' },{ 41,'G' },{ 42,'G' },{ 43,'G' },{ 44,'V' },{ 45,'V' },{ 46,'V' },{ 47,'V' },{ 48,'X' },{ 49,'Y' },{ 50,'X' },{ 51,'Y' },{ 52,'S' },{ 53,'S' },{ 54,'S' },{ 55,'S' },{ 56,'X' },{ 57,'C' },{ 58,'W' },{ 59,'C' },{ 60,'L' },{ 61,'F' },{ 62,'L' },{ 63,'F' } };
 	vector<int> rc_nuc = { 3,2,1,0 };
 	for (int i = 0; i < orfs.size(); i++)
 	{
-		//dnds[i].orf_id = orfs[i].orf_id;
 		if (orfs[i].match_frame[1].size()==0)
 		{
 			continue;
@@ -7965,9 +7682,6 @@ void do_anti_dnds(/*vector<DNDS_reporter>& dnds, */vector<DNDS_reporter2>& dnds2
 						{
 							continue;
 						}
-						//cout << "\n" << pos_aa << " " << aa0 << " " << pos_anti_aa << " " << anti_aa0 << " " << k << " " << cod0[0]<<cod0[1]<<cod0[2]<<" "<<anti_cod0[0]<<anti_cod0[1]<<anti_cod0[2]<<" "<< cod1[h];
-						//getchar();
-						//int id = orfs[i].focal_align_seq[1][j - 1] * 4 * 4 * 4 + orfs[i].focal_align_seq[1][j] * 4 * 4 + orfs[i].focal_align_seq[1][j + 1] * 4 + k;
 						dnds2.push_back(DNDS_reporter2());
 						dnds2.back().context = rev_nuc_map.at(orfs[i].focal_align_seq[1][j - 1]) + rev_nuc_map.at(orfs[i].focal_align_seq[1][j]) + rev_nuc_map.at(orfs[i].focal_align_seq[1][j + 1]);
 						dnds2.back().base = rev_nuc_map.at(orfs[i].focal_align_seq[1][j]);
@@ -7975,37 +7689,18 @@ void do_anti_dnds(/*vector<DNDS_reporter>& dnds, */vector<DNDS_reporter2>& dnds2
 						dnds2.back().orf_id = orfs[i].orf_id;
 						if (pos_aa == aa0)
 						{
-							//dnds[i].syn_exp += sub_rates[cod0[h]][k];
-							//dnds[i].syn_base[cod0[h] * 4 + k]++;
 							dnds2.back().syn = 1;
-							/////
-							
-							//cout << "\nsyn: " << dnds2.back().context << " " << dnds2.back().base << " " << dnds2.back().sub << " " << dnds2.back().orf_id<<" h"<<h<<" k"<<k;
-							//cout << " " << cod0[0] << cod0[1] << cod0[2] <<" "<<cod1[0]<<cod1[1]<<cod1[2]<<" "<<anti_cod0[0]<<anti_cod0[1]<<anti_cod0[2]<<" "<< anti_cod1[0] << anti_cod1[1] << anti_cod1[2];
-							//getchar();
-
-							////
-							//dnds2[id].syn_base++;
 							if (cod1[h] == k)
 							{
-								//dnds[i].syn_obs++;
-								//dnds[i].syn_subs[cod0[h] * 4 + k]++;
 								dnds2.back().actual = 1;
-								//dnds2[id].syn_sub++;
 							}
 						}
 						else
 						{
 							dnds2.back().syn = 0;
-							//dnds[i].nonsyn_exp += sub_rates[cod0[h]][k];
-							//dnds2[id].nonsyn_base++;
-							//dnds[i].nonsyn_base[cod0[h] * 4 + k]++;
 							if (cod1[h] == k)
 							{
-								//dnds[i].nonsyn_obs++;
-								//dnds[i].nonsyn_subs[cod0[h] * 4 + k]++;
 								dnds2.back().actual = 1;
-								//dnds2[id].nonsyn_sub++;
 							}
 						}
 					}
@@ -8024,11 +7719,9 @@ void collective_dnds()
 	read_orfs_long(orfs, "orfs_scer_blast_matched_validated", spp.size());
 	cout << "\nread orfs: " << orfs.size();
 
-	//vector<DNDS_reporter> dnds_reporter(orfs.size());
 	vector<DNDS_reporter2> dnds_reporter2;
 
-	do_dnds(/*dnds_reporter, */dnds_reporter2, orfs);
-	//print_dnds(dnds_reporter, "spar_real_dnds");
+	do_dnds(/dnds_reporter2, orfs);
 	print_dnds2(dnds_reporter2, "spar_dnds_all_");
 }
 
@@ -8040,18 +7733,14 @@ void anti_dnds()
 	cout << "\nread orfs: " << orfs.size();
 	for (int i = 1; i <= 3; i++)
 	{
-		//vector<DNDS_reporter> dnds_reporter(orfs.size());
 		vector<DNDS_reporter2> dnds_reporter2;
-		do_anti_dnds(/*dnds_reporter, */dnds_reporter2, orfs, i, true);
-		//print_dnds(dnds_reporter, "spar_anti_dnds_antisyn"+to_string(i));
+		do_anti_dnds(dnds_reporter2, orfs, i, true);
 		print_dnds2(dnds_reporter2, "spar_antisyn_all_" + to_string(i));
 	}
 	for (int i = 1; i <= 3; i++)
 	{
-		//vector<DNDS_reporter> dnds_reporter(orfs.size());
 		vector<DNDS_reporter2> dnds_reporter2;
-		do_anti_dnds(/*dnds_reporter, */dnds_reporter2, orfs, i, false);
-		//print_dnds(dnds_reporter, "spar_anti_dnds_antinonsyn" + to_string(i));
+		do_anti_dnds(dnds_reporter2, orfs, i, false);
 		print_dnds2(dnds_reporter2, "spar_antinonsyn_all_" + to_string(i));
 	}
 }
@@ -8098,8 +7787,6 @@ void get_nuc_diverse(vector<Orf> &protogenes, const vector<Vcf> &vcfs, const vec
 				{
 					sumsq += variant_freqs[n] * variant_freqs[n];
 				}
-				//cout << "\n" << i << " " << j << " " << variant_freqs[0] << " " << variant_freqs[1] << " " << sumsq;
-				//getchar();
 				nuc_diverse.push_back(1 - sumsq);
 			}
 			else if (vcf_id == -1)
@@ -8129,7 +7816,7 @@ void print_nuc_diverse(vector<Orf> &orfs)
 void nuc_diverse()
 {
 	vector<Contig> contigs;
-	read_fasta(contigs, "S288C_reference_sequence_R64-2-1_20150113.fsa");
+	read_fasta(contigs, "input_files/S288C_reference_sequence_R64-2-1_20150113.fsa");
 
 	vector<string> spp = { "Scer","Spar","Smik","Sjur","Skud","Sarb","Suva","Seub" };
 	vector<Orf> orfs;
@@ -8138,7 +7825,7 @@ void nuc_diverse()
 	vector<Vcf> vcfs;
 	vector<string> isolates;
 
-	read_vcfs(vcfs, isolates, "1011Matrix.gvcf");
+	read_vcfs(vcfs, isolates, "input_files/1011Matrix.gvcf");
 	cout << "\nvcfs read: " << vcfs.size();
 	vector<vector<int>> vcf_map;
 	map_vcfs_to_genome(vcf_map, vcfs, contigs);
@@ -8191,37 +7878,37 @@ int main(int argc, char* argv[])
 		}
 		identify_translated_orfs(mod);
 	}
-	else if (args[0] == "-GetSubsMatrix")
+	else if (args[0] == "-GetSubsMatrix") //dervie from genomic data a nucleotide subsitution matrix to use in evolutionary models 
 	{
 		get_sub_matrix();
 	}
-	else if (args[0] == "-SyntenyAlign") // need file: muscle3.8.31_i86linux64
+	else if (args[0] == "-SyntenyAlign") // sequence alignment of syntenic regions for each ORF in other Saccharomyces species. need file from MUSLCE sequence alignment program: muscle3.8.31_i86linux64
 	{
 		int species = stoi(args[1]);
 		synteny_align(species, false, false);
 	}
-	else if (args[0] == "-SyntenyMatch")
+	else if (args[0] == "-SyntenyMatch") //analyze syntenic alignments and use them to locate each S. cerevisiae ORF and build pairwise alignments of its homologous seqeunces 
 	{
 		synteny_match();
 	}
-	else if (args[0] == "-SyntenyCheck")
+	else if (args[0] == "-SyntenyCheck") //check quality of syntenic alignment of ORF. if alignment is poor, reject it
 	{
 		synteny_check();
 	}
-	else if (args[0] == "-SensuStrictoBlast")
+	else if (args[0] == "-SensuStrictoBlast") //for ORFs without good syntenic alignments in a comparison species, use BLAST to try to find a one-to-one homolog. this function BLASTs each ORF against the other saccharomyces specise.
 	{
 		sensu_stricto_blast();
 	}
-	else if (args[0] == "-BlastAlign")
+	else if (args[0] == "-BlastAlign")//align matched ORFs identified by blast 
 	{
 		int species = stoi(args[1]);
 		blast_align(species);
 	}
-	else if (args[0] == "-BlastMatch")
+	else if (args[0] == "-BlastMatch")//analogous to SyntenyMatch, but for homologs identified by BLAST
 	{
 		blast_match();
 	}
-	else if (args[0] == "-ResolveAlignments")
+	else if (args[0] == "-ResolveAlignments")//ResolveAlignmentsand ValidateAlignments together check the quality of the BLAST-based ORF alignments, rejecting if either the alignment itself is bad or there is ambiguity about the best homolgous match
 	{
 		resolve_alignments();
 	}
@@ -8229,59 +7916,59 @@ int main(int argc, char* argv[])
 	{
 		validate_alignments();
 	}
-	else if (args[0] == "-MultAlignOrthologs")
+	else if (args[0] == "-MultAlignOrthologs")//creates multiple alignment from pairwise alignments to orthologous ORF sequences
 	{
 		mult_align_orthologs();
 	}
-	else if (args[0] == "-PhyloBlast") // -TBLASTN_SCRAMBLED -ORF_BLAST
-	{
-		phylo_blast(args[1]);
-	}
-	else if (args[0] == "-PhyloORFs")
+	else if (args[0] == "-PhyloORFs")//find ORFs in budding yeast genomes outside saccharomyces for BLAST comparison using -PhyloBlast
 	{
 		phylo_find_orfs();
 	}
-	else if (args[0] == "-PhyloAnalyze") //-TBLASTN_SCRAMBLED
-	{
+	else if (args[0] == "-PhyloBlast") //blast S. cerevisiae ORFs against 300+ budding yeast genomes from Shen et al.  
+	{ //add additional argument (described in function): -TBLASTN -TBLASTN_SCRAMBLED -ORF_BLAST -BLASTP
+		phylo_blast(args[1]);
+	}
+	else if (args[0] == "-PhyloAnalyze") //analyze BLAST results, report strength of matches of each ORF with other budding yeast genome sequences outside saccharomyces 
+	{//add additional argument: //-TBLASTN_SCRAMBLED -TBLASTN
 		phylo_analyze(args[1]);
 	}
-	else if (args[0] == "-SelfBlast")
+	else if (args[0] == "-SelfBlast")//blast ORFs against S. cerevisiae genome to identify potential duplications
 	{
 		self_blast();
 	}
-	else if(args[0] == "-CodingScores")
+	else if(args[0] == "-CodingScores")//calculate coding scores for each ORF
 	{
 		coding_scores();
 	}
-	else if(args[0] == "-MakeCleanAlignments")
+	else if(args[0] == "-MakeCleanAlignments")//make alignment files for each ORF containing only the positions with conserved reading frame for dn/ds analysis 
 	{
 		make_clean_alignment_files();
 	}
-	else if(args[0] == "-MakeJoinedCleanAlignments")
+	else if(args[0] == "-MakeJoinedCleanAlignments")//join alignment files of individual ORFs, then uses PRANK to infer a tree from the alignment. PRANK software required to run.
 	{
 		make_joined_clean_alignment();
 	}
-	else if(args[0] == "-IndividualDNDS")
+	else if(args[0] == "-IndividualDNDS")//dN/dS analysis for individual ORFs using PRANK ancestral reconstruction. PRANK software required to run.
 	{
 		individual_dnds();
 	}
-	else if(args[0] == "-StrainSetup")
+	else if(args[0] == "-StrainSetup")//intial processing for S. cerevisiae strain data from Peter et al. 2018
 	{
 		strain_setup();
 	}
-	else if(args[0] == "-StrainAnalyze")
+	else if(args[0] == "-StrainAnalyze")//analysis of S. cerevisiae strain data from Peter et al. 2018, in particular pn/ps
 	{
 		strain_analyze();
 	}
-	else if(args[0] == "-NucDiverse")
+	else if(args[0] == "-NucDiverse")//calculate nucleotide diversity for each ORF in strain data from Peter et al. 2018
 	{
 		nuc_diverse();
 	}
-	else if(args[0] == "-CollectiveDNDS")
+	else if(args[0] == "-CollectiveDNDS")//prepare data used for collective dn/ds analysis of ORFs
 	{
 		collective_dnds();
 	}
-	else if(args[0] == "-AntiDNDS")
+	else if(args[0] == "-AntiDNDS")//prepare data used for collective dn/ds analysis of antisense ORFs
 	{
 		anti_dnds();
 	}
