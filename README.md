@@ -58,14 +58,45 @@ Processes must be run in the given order as they often depend on successful comp
 - CollectiveDNDS
 - AntiDNDS
 
+##Input Files
+The following files are included in the input_files directory and are necessary for successfully running the program:
 
+Genomes: 
+GCF_001298625.1_SEUB3.0_genomic.fna
+Sbay.ultrascaf
+GCF_000292725.1_SacArb1.0_genomic.fna
+Skud.ultrascaf
+GCA_900290405.1_SacJureiUoM1_genomic.fna
+S288C_reference_sequence_R64-2-1_20150113.fsa
+Smik.ultrascaf
+Spar.ultrascaf
+
+Saccharomyces Genome Database (https://www.yeastgenome.org/) genome annotations:
+saccharomyces_cerevisiae.gff
+other_features_genomic.fasta
+rna_coding.fasta
+orf_coding_all.fasta
+
+Tif-seq data from  Pelechano et al. 2013 (PMID 23615609), downloaded from SGD:
+tsedAnno_V2.txt
+
+Information prepared for this study:
+budding_yeast_genomes_filenames.txt
+riboseq_experiments_dataset.txt
+
+Figures:
+flowchart_evolve14.eps
+Figure1_schema4_nolabel.eps
+Schema_RiboInt6.eps
 
 ### Dependencies 
 The last two processes (`MapRiboseqReads` and `CombineRiboseqReads`) require a collection of fastq files with ribosome profiling data. A full list of the fastq files analyzed in this study is included in: `input_files/riboseq_experiments_dataset.txt`
 
 The file 1011Matrix.gvcf is required for population analyses. Download from: http://1002genomes.u-strasbg.fr/files/ 
 
-The PRANK and MUSCLE programs are called for sequence alignments and must be available.
+The budding yeast genomes collected by Shen et al. 2018 is also required. Download 0_332yeast_genomes.zip from the figshare repository: https://figshare.com/articles/dataset/Tempo_and_mode_of_genome_evolution_in_the_budding_yeast_subphylum/5854692
+
+The BLAST, PRANK and MUSCLE programs are called for sequence alignments and must be available.
 
 ## Figure generation
 `translatome.R` script uses files given in `input_files` and others generated when above processes run.
