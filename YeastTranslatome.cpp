@@ -5861,7 +5861,7 @@ void get_sub_matrix()
 	vector<Vcf> vcfs;
 	vector<string> isolates;
 
-	read_vcfs(vcfs, isolates, "/home/acwach/YeastComp/1011Matrix.gvcf");
+	read_vcfs(vcfs, isolates, "input_files/1011Matrix.gvcf");
 	cout << "\nvcfs read: " << vcfs.size();
 
 	get_major_var(vcfs);
@@ -7315,7 +7315,7 @@ void read_align_positions(vector<vector<int>> &align_positions, string filename)
 
 void read_pop_align(vector<vector<vector<int>>> &pop_align, int suffix)
 {
-	ifstream file("/home/acwach/Synteny/ORF_COMP_POP/pop_align" + to_string(suffix));
+	ifstream file("ORF_COMP/pop_align" + to_string(suffix));
 	string line;
 	getline(file, line);
 	int i = 0;
