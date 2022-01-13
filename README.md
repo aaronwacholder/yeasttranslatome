@@ -96,6 +96,8 @@ The file 1011Matrix.gvcf is required for population analyses. Download from: htt
 
 The budding yeast genomes collected by Shen et al. 2018 is also required. Download 0_332yeast_genomes.zip from the figshare repository: https://figshare.com/articles/dataset/Tempo_and_mode_of_genome_evolution_in_the_budding_yeast_subphylum/5854692
 
+Then place all the genome assemblies (the .fas files) in the folder budding_yeast_genomes. The file budding_yeast_genomes_filenames.txt should list all genomes to process.
+
 The BLAST, PRANK and MUSCLE programs are called for sequence alignments and must be available.
 
 ## Figure generation
