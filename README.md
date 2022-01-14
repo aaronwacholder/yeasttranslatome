@@ -128,6 +128,7 @@ library("coin")
 ## Function Input and Outputs
 
 - GetAllORFs
+
 Ouput: orf_comp, orf_overlap, shared_transcripts, orf_neighbors
 - IdentifyTranslatedORFs 
 Input: orfs_comp
