@@ -130,82 +130,164 @@ library("coin")
 - GetAllORFs
 
 Ouput: orf_comp, orf_overlap, shared_transcripts, orf_neighbors
+
 - IdentifyTranslatedORFs 
+
 Input: orfs_comp
+
 Output: many files with names starting with "riboseq_orfs" corresponding to different sets of studies 
+
 - GetSubsMatrix
+
 Output: sub_rates_nongenic
+
 - SyntenyAlign
+
 Output: orfs_aa_Suva.fas, orfs_aa_Spar.fas, orfs_aa_Smik.fas, orfs_aa_Skud.fas, orfs_aa_Sjur.fas, orfs_aa_Seub.fas, orfs_aa_Scer.fas, orfs_aa_Sarb.fas
+
 Output: blocks7_0, blocks6_0, blocks5_0, blocks4_0, blocks3_0, blocks2_0, blocks1_0
+
 Output: blocks_Scer_Suva_0, blocks_Scer_Spar_0, blocks_Scer_Smik_0, blocks_Scer_Skud_0, blocks_Scer_Sjur_0, blocks_Scer_Seub_0, blocks_Scer_Sarb_0
+
 Output: aligned_blocks1_0, aligned_blocks2_0, aligned_blocks3_0, aligned_blocks4_0, aligned_blocks5_0, aligned_blocks6_0, aligned_blocks7_0
+
 - SyntenyMatch
+
 Input: sub_rates_nongenic, aligned_blocks1_0, aligned_blocks2_0, aligned_blocks3_0, aligned_blocks4_0, aligned_blocks5_0, aligned_blocks6_0, aligned_blocks7_0
+
 Output: orf_bounds_synteny, orfs_Scer_synteny_matched
+
 - SyntenyCheck
+
 Input: orfs_Scer_synteny_matched
+
 Output: orfs_scer_synteny_matched_checked
+
 - SensuStrictoBlast
-Output: blasts_genome_nuc_Sarb_3.out, blasts_genome_nuc_Scer_3.out, blasts_genome_nuc_Seub_3.out, blasts_genome_nuc_Sjur_3.out, blasts_genome_nuc_Skud_3.out, blasts_genome_nuc_Smik_3.out, blasts_genome_nuc_Spar_3.out, blasts_genome_nuc_Suva_3.out
+
+Output: blasts_genome_nuc_Sarb_3.out, blasts_genome_nuc_Scer_3.out, blasts_genome_nuc_Seub_3.out, blasts_genome_nuc_Sjur_3.out, blasts_genome_nuc_Skud_3.out, 
+
+blasts_genome_nuc_Smik_3.out, blasts_genome_nuc_Spar_3.out, blasts_genome_nuc_Suva_3.out
+
 - BlastAlign
-Input: blasts_genome_nuc_Sarb_3.out, blasts_genome_nuc_Scer_3.out, blasts_genome_nuc_Seub_3.out, blasts_genome_nuc_Sjur_3.out, blasts_genome_nuc_Skud_3.out, blasts_genome_nuc_Smik_3.out, blasts_genome_nuc_Spar_3.out, blasts_genome_nuc_Suva_3.out
+
+Input: blasts_genome_nuc_Sarb_3.out, blasts_genome_nuc_Scer_3.out, blasts_genome_nuc_Seub_3.out, blasts_genome_nuc_Sjur_3.out, blasts_genome_nuc_Skud_3.out, 
+blasts_genome_nuc_Smik_3.out, blasts_genome_nuc_Spar_3.out, blasts_genome_nuc_Suva_3.out
+
 Output: blocks_blast_1, blocks_blast_2, blocks_blast_3, blocks_blast_4, blocks_blast_5, blocks_blast_6, blocks_blast_7
+
 Output: aligned_blocks_blast_1, aligned_blocks_blast_2, aligned_blocks_blast_3, aligned_blocks_blast_4, aligned_blocks_blast_5, aligned_blocks_blast_6, aligned_blocks_blast_7
+
 - BlastMatch
+
 Input: aligned_blocks_blast_1, aligned_blocks_blast_2, aligned_blocks_blast_3, aligned_blocks_blast_4, aligned_blocks_blast_5, aligned_blocks_blast_6, aligned_blocks_blast_7
+
 Input: orfs_scer_synteny_matched_checked
+
 Output: orf_bounds_blast, orfs_scer_scer_blast_matched
+
 - ResolveAlignments
+
 Input: orfs_scer_blast_matched, orf_bounds_blast
+
 Output: blast_matches_to_validate.fasta, blast_matches_to_validate.out
+
 - ValidateAlignments
+
 Input: orfs_scer_blast_matched, blast_matches_to_validate.out
+
 Output: orfs_scer_blast_matched_validated
+
 - MultAlignOrthologs
+
 Input: orfs_scer_blast_matched_validated
+
 Output: orfs_mult_align
+
 - PhyloORFs
+
 Output: ORF data files in directory ORFS_332
+
 - PhyloBlast -TBLASTN:
+
 Output: BLAST result files in directory tblastn_align
+
 - PhyloBlast -TBLASTN_SCRAMBLED:
+
 Output: BLAST result files in directory tblastn_align_scrambled_and_real
+
 - PhyloBlast -ORF_BLAST
+
 Output: BLAST result files in directory orf_blast_align
+
 - PhyloAnalyze -TBLASTN
+
 Input: orfs_comp, blast result files
+
 Output: phylo_pres
+
 - PhyloAnalyze -TBLASTN_SCRAMBLED
+
 Input: orfs_comp, blast result files
+
 Output: phylo_pres_tblastn_scrambled
+
 - SelfBlast
+
 Input: orf_genomic_all.fasta
+
 Output: gene_sim
+
 - CodingScores
+
 Input: orfs_comp
+
 Output: coding_scores_
+
 - MakeCleanAlignments
+
 Input: orfs_scer_blast_matched_validated
+
 Output: clean_alignments
+
 - MakeJoinedCleanAlignments
+
 Input: orfs_comp
+
 Output: joined_tree.nwk
+
 - IndividualDNDS
+
 Input: orfs_comp, sub_rates_nongenic
+
 Output: tree_dnds
+
 - StrainSetup
+
 Input: orfs_comp
+
 Output: align_positions
+
 - StrainAnalyze
+
 Input: sub_rates_nongenic, orfs_comp, align_positions
+
 Output: anti_pnps_pop_1, anti_pnps_pop_2, anti_pnps_pop_3
+
 - NucDiverse
+
 Input: orfs_scer_blast_matched_validated
+
 Output: nuc_diverse
+
 - CollectiveDNDS
+
 Input: orfs_scer_blast_matched_validated
+
 Output: spar_dnds_all_
+
 - AntiDNDS
+
 Input: orfs_scer_blast_matched_validated
+
 Output: spar_antisyn_all_1, spar_antisyn_all_2, spar_antisyn_all_3, spar_antinonsyn_all_1, spar_antinonsyn_all_2, spar_antinonsyn_all_3
